@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8">
+				<title>虫チェックリストエフェクト</title>
+				<style>
+					body{
+						background-color:rgba(0, 0, 0, 0);
+					}
+					#snow_particlesjs{
+						
+						width: 100%;
+						height: 100%;
+						position:fixed;
+						pointer-events: none;
+						transition: 1.0s ;
+						opacity: 0;
+					}
+				</style>
+    </head>
+    <body>
+			<div id = "container">
+				<div id="snow_particlesjs"></div>
+			</div>
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/tsparticles/2.6.0/tsparticles.min.js" integrity="sha512-+YPbXItNhUCZR3fn5KeWPtJrXuoqRYQ4Gd1rIjEFG+h8UJYekebhOMh84vv7q+Y1sy5kdIIVtfftehCiigriMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+			
+      <script type="module">
+				let checkedBugs = Array(64);
+
+        // Import the functions you need from the SDKs you need
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+
+        //firebaseの関数を導入
+          import { getDatabase, ref, push, set, onChildAdded } 
+          from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyCxRfyJdLGA4LMt1M49DX2T3_P-r32gmrk",
+          authDomain: "checklist-27007.firebaseapp.com",
+          projectId: "checklist-27007",
+          storageBucket: "checklist-27007.appspot.com",
+          messagingSenderId: "1066928066854",
+          appId: "1:1066928066854:web:ba61808b7da7cd5d2db1e7",
+          measurementId: "G-H1E41HYYYB"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+				const dbref = ref(db, "check");		
+				const snowImg =　[
+					"bugs/Common_Butterfly_CF_Icon.png",
+					"bugs/Yellow_Butterfly_CF_Icon.png",
+					"bugs/Tiger_Butterfly_CF_Icon.png",
+					"bugs/Peacock_Butterfly_CF_Icon.png",
+					"bugs/Monarch_Butterfly_CF_Icon.png",
+					"bugs/Emperor_Butterfly_CF_Icon.png",
+					"bugs/Agrias_Butterfly_CF_Icon.png",
+					"bugs/Raja_Brooke_Butterfly_CF_Icon.png",
+					"bugs/Birdwing_Butterfly_CF_Icon.png",
+					"bugs/Moth_CF_Icon.png",
+					"bugs/Oak_Silk_Moth_CF_Icon.png",
+					"bugs/Honeybee_CF_Icon.png",
+					"bugs/Bee_CF_Icon.png",
+					"bugs/Long_Locust_CF_Icon.png",
+					"bugs/Migratory_Locust_CF_Icon.png",
+					"bugs/Mantis_CF_Icon.png",
+					"bugs/Orchid_Mantis_CF_Icon.png",
+					"bugs/Brown_Cicada_CF_Icon.png",
+					"bugs/Robust_Cicada_CF_Icon.png",
+					"bugs/Walker_Cicada_CF_Icon.png",
+					"bugs/Evening_Cicada_CF_Icon.png",
+					"bugs/Lantern_Fly_CF_Icon.png",
+					"bugs/Red_Dragonfly_CF_Icon.png",
+					"bugs/Darner_Dragonfly_CF_Icon.png",
+					"bugs/Banded_Dragonfly_CF_Icon.png",
+					"bugs/Petaltail_Dragonfly_CF_Icon.png",
+					"bugs/Ant_CF_Icon.png",
+					"bugs/Pondskater_CF_Icon.png",
+					"bugs/Diving_Beetle_CF_Icon.png",
+					"bugs/Snail_CF_Icon.png",
+					"bugs/Cricket_CF_Icon.png",
+					"bugs/Bell_Cricket_CF_Icon.png",
+					"bugs/Grasshopper_CF_Icon.png",
+					"bugs/Mole_Cricket_CF_Icon.png",
+					"bugs/Walking_Leaf_CF_Icon.png",
+					"bugs/Walking_Stick_CF_Icon.png",
+					"bugs/Bagworm_CF_Icon.png",
+					"bugs/Ladybug_CF_Icon.png",
+					"bugs/Violin_Beetle_CF_Icon.png",
+					"bugs/Citrus_Long-Horned_Beetle_CF_Icon.png",
+					"bugs/Dung_Beetle_CF_Icon.png",
+					"bugs/Firefly_CF_Icon.png",
+					"bugs/Fruit_Beetle_CF_Icon.png",
+					"bugs/Scarab_Beetle_CF_Icon.png",
+					"bugs/Jewel_Beetle_CF_Icon.png",
+					"bugs/Miyama_Stag_CF_Icon.png",
+					"bugs/Saw_Stag_CF_Icon.png",
+					"bugs/Giant_Stag_CF_Icon.png",
+					"bugs/Rainbow_Stag_CF_Icon.png",
+					"bugs/Cyclommatus_CF_Icon.png",
+					"bugs/Golden_Stag_CF_Icon.png",
+					"bugs/Dynastid_Beetle_CF_Icon.png",
+					"bugs/Atlas_Beetle_CF_Icon.png",
+					"bugs/Elephant_Beetle_CF_Icon.png",
+					"bugs/Hercules_Beetle_CF_Icon.png",
+					"bugs/Goliath_Beetle_CF_Icon.png",
+					"bugs/Flea_CF_Icon.png",
+					"bugs/Pill_Bug_CF_Icon.png",
+					"bugs/Mosquito_CF_Icon.png",
+					"bugs/Fly_CF_Icon.png",
+					"bugs/Centipede_CF_Icon.png",
+					"bugs/Spider_CF_Icon.png",
+					"bugs/Tarantula_CF_Icon.png",
+					"bugs/Scorpion_CF_Icon.png"];	
+
+				onChildAdded(dbref, function(recieveData){
+					const bugIdNum = recieveData.val();
+					//チェックをつけた時
+					if (checkedBugs[bugIdNum]){ //同じ虫がチェックされたのが偶数回目なら
+						checkedBugs[bugIdNum] = "";
+						console.log(checkedBugs);
+					} else {
+						checkedBugs[bugIdNum] = true; //押した虫の番号を配列にpushする。
+						const ElementDiv = document.createElement("div");
+						ElementDiv.id = "snow_particlesjs";
+						document.getElementById("container").prepend(ElementDiv);
+						
+						console.log(bugIdNum);
+						console.log(checkedBugs);
+						
+						particlesJS("snow_particlesjs", { //HTMLのidを指定
+							"particles": {
+								//シェイプの設定
+								"number": {
+									"value": 75, //シェイプの数
+									"density": {
+										"enable": true, //シェイプの密集度の設定許可
+										"value_area": 800 //シェイプの密集度
+									}
+								},
+								"shape": {
+									"type": "image", //circle、edge、triangle、polygon、star、image から選べる
+									"image": {
+										"src": snowImg[bugIdNum], //雪の画像を設定する ※相対パスでも可
+										//虫の画像を行列としてまとめる。チェックidを行列の番号として指定する。
+									}
+								},
+								"opacity": {
+									"value": 0.7, //透明度
+									"random": false, //透明度ランダムの許可
+									"anim": {
+										"enable": false, //透明度のアニメーションさせるかどうか
+										"speed": 1, //アニメーションのスピード
+										"opacity_min": 0.1, //透明度の最小値
+										"sync": false //シェイプを同時にアニメーションさせるかどうか
+									}
+								},
+								"size": {
+									"value": 50, //シェイプの大きさ
+									"random": true, //大きさランダムの許可
+									"anim": {
+										"enable": true, //大きさアニメーションさせるかどうか
+										"speed": 20, //スピード
+										"size_min": 8, //スピードの最小値
+										"sync": false //同時にアニメーションさせるかどうか
+									}
+								},
+								// 線の設定
+								"line_linked": {
+									"enable": false, //線を表示するかどうか
+								},
+								// 動きの設定
+								"move": {
+									"enable": true, //シェイプの動かすかどうか
+									"speed": 15, //スピード
+									"direction": "none", //シェイプの動く方向(none、top、top-right、right、bottom-right、bottom、bottom-left、left、top-left から選べる)
+									"random": true, // 動きはランダム
+									"straight": false, 
+									"out_mode": "bounce", //エリア外に出たシェイプの動き(out、bounce から選べる)
+									"attract": {
+										"enable": true,
+										"rotateX": 600,
+										"rotateY": 1000
+									}
+								}
+							},
+							"interactivity": {
+								"detect_on": "canvas",
+								"events": {
+									//マウスオーバー時
+									"onhover": {
+										"enable": false, //マウスオーバーの許可
+									},
+									//クリック時
+									"onclick": {
+										"enable": false, //クリックの許可
+									},
+									"resize": true
+								}
+							},
+							"retina_detect": true
+						}); 
+					ElementDiv.style.opacity = "100";
+					function particlesOpacity(){
+						ElementDiv.style.opacity = "0";
+						setTimeout(removeParticles, 3000);
+					}
+					function removeParticles(){
+						ElementDiv.remove();
+					}
+					setTimeout(particlesOpacity, 3000);
+					
+					console.log("チャイルドがアデッドした")
+					
+					}
+        });
+
+          
+      </script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+			
+    
+    </body>
+</html>
+	</body>
+</html>
